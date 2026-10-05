@@ -19,6 +19,7 @@ final class Renderer {
     let commandQueue: any MTLCommandQueue
     private(set) var settings: Settings
     private(set) var metrics: GridMetrics
+    var hasSurfaces: Bool { baseTexture != nil }
 
     private let rainPipeline: any MTLRenderPipelineState
     private let downsamplePipeline: any MTLRenderPipelineState
@@ -85,6 +86,14 @@ final class Renderer {
         } else {
             bloomTextures = nil
         }
+    }
+
+    /// Frees the size-dependent textures. The next `resize` recreates them.
+    /// legacyScreenSaver keeps stopped instances alive, so they must not hold full-screen textures.
+    func releaseSurfaces() {
+        baseTexture = nil
+        bloomTextures = nil
+        pixelSize = .zero
     }
 
     func update(settings: Settings) {

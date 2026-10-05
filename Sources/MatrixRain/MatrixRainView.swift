@@ -28,6 +28,8 @@ final class MatrixRainView: ScreenSaverView {
     var hasRenderer: Bool { renderer != nil }
     var currentSettings: Settings { settings }
     var rendererMetrics: GridMetrics? { renderer?.metrics }
+    var rendererHasSurfaces: Bool { renderer?.hasSurfaces ?? false }
+    private(set) var timeOffset: CFTimeInterval = 0
 
     init?(frame: NSRect, isPreview: Bool, defaults: UserDefaults) {
         self.defaults = defaults
@@ -123,7 +125,11 @@ final class MatrixRainView: ScreenSaverView {
     }
 
     /// Called for `com.apple.screensaver.willstop`; internal so tests can drive it directly.
+    /// The notification reaches every instance, including the System Settings thumbnail,
+    /// which nothing would restart, so previews ignore it and stop only via `stopAnimation`
+    /// or leaving their window.
     func handleWillStop() {
+        guard !isPreview else { return }
         stopRendering()
     }
 
@@ -131,6 +137,8 @@ final class MatrixRainView: ScreenSaverView {
         guard renderer != nil, displayLink == nil else { return }
         updateDrawableSize()
         startTime = CACurrentMediaTime()
+        // The rain is a pure function of time, so a random start keeps displays and activations distinct.
+        timeOffset = CFTimeInterval.random(in: 0..<Self.timeWrap)
         let link = displayLink(target: self, selector: #selector(step(_:)))
         link.add(to: .main, forMode: .common)
         displayLink = link
@@ -144,6 +152,7 @@ final class MatrixRainView: ScreenSaverView {
     private func stopRendering() {
         displayLink?.invalidate()
         displayLink = nil
+        renderer?.releaseSurfaces()
         if let observer = stopObserver {
             DistributedNotificationCenter.default().removeObserver(observer)
             stopObserver = nil
@@ -151,7 +160,7 @@ final class MatrixRainView: ScreenSaverView {
     }
 
     @objc private func step(_ link: CADisplayLink) {
-        let elapsed = (link.targetTimestamp - startTime).truncatingRemainder(dividingBy: Self.timeWrap)
+        let elapsed = (link.targetTimestamp - startTime + timeOffset).truncatingRemainder(dividingBy: Self.timeWrap)
         renderer?.draw(in: metalLayer, time: Float(elapsed))
     }
 
