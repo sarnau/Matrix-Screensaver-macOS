@@ -5,6 +5,7 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) var window: NSWindow?
     private(set) var appMenu: NSMenu?
+    private(set) var rainView: MatrixRainView?
 
     /// Unit tests are hosted by this app; don't open a window under them.
     static var isRunningTests: Bool {
@@ -23,6 +24,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         window.title = "Matrix Rain"
         window.center()
+        if let view = MatrixRainView(frame: window.contentLayoutRect, isPreview: false) {
+            view.autoresizingMask = [.width, .height]
+            window.contentView = view
+            view.startAnimation()
+            rainView = view
+        }
         window.makeKeyAndOrderFront(nil)
         self.window = window
         NSApp.activate()
