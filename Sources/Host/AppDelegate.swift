@@ -39,11 +39,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         true
     }
 
+    @objc private func showOptions(_ sender: Any?) {
+        guard let window, let sheet = rainView?.configureSheet else { return }
+        window.beginSheet(sheet)
+    }
+
     private func buildMainMenu() {
         let mainMenu = NSMenu()
         let appItem = NSMenuItem()
         mainMenu.addItem(appItem)
         let appMenu = NSMenu()
+        let options = NSMenuItem(title: "Options…", action: #selector(showOptions(_:)), keyEquivalent: ",")
+        options.target = self
+        appMenu.addItem(options)
+        appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "Quit Matrix Rain Host",
                         action: #selector(NSApplication.terminate(_:)),
                         keyEquivalent: "q")

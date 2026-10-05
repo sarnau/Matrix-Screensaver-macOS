@@ -157,6 +157,14 @@ final class MatrixRainView: ScreenSaverView {
 
     // MARK: Settings
 
+    lazy var configureController = ConfigureSheetController { [weak self] in self?.apply($0) }
+
+    override var hasConfigureSheet: Bool { true }
+
+    override var configureSheet: NSWindow? {
+        configureController.present(settings: settings)
+    }
+
     func apply(_ newSettings: Settings) {
         settings = newSettings
         newSettings.save(to: defaults)
