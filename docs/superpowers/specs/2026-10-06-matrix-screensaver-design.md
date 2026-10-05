@@ -7,7 +7,7 @@ Status: Draft for review
 
 A macOS screensaver module (`MatrixRain.saver`) written in Swift that renders a
 film-accurate "digital rain" effect with Metal. Personal use: built in Xcode,
-signed with an Apple Development identity, installed by double-clicking. No
+ad hoc signed ("Sign to Run Locally"), installed by double-clicking. No
 notarization.
 
 ## Requirements
@@ -61,7 +61,7 @@ Source files (`Sources/MatrixRain/`):
 | File | Responsibility | Depends on |
 |---|---|---|
 | `MatrixRainView.swift` | `ScreenSaverView` subclass; owns `CAMetalLayer`, display link, preview handling, configure sheet hookup, stop notification. | Renderer, Settings, ConfigureSheet |
-| `Renderer.swift` | Metal device/queue/pipelines, offscreen textures, per-frame encode (rain → bloom → composite). API: `init?(device:layer:bundle:settings:)`, `resize(drawableSize:scale:)`, `update(settings:)`, `draw(time:)`, plus `encodeFrame(into:time:)` for tests. | GlyphAtlas, Settings, ShaderTypes |
+| `Renderer.swift` | Metal device/queue/pipelines, offscreen textures, per-frame encode (rain → bloom → composite). API: `init?(device:bundle:settings:isPreview:)`, `resize(pixelSize:backingScale:)`, `update(settings:)`, `draw(in: CAMetalLayer, time:)`, plus `encodeFrame(into:target:time:)` for tests. | GlyphAtlas, Settings, ShaderTypes |
 | `GlyphAtlas.swift` | Rasterises the glyph set via CoreText into an `MTLTexture`; exposes glyph count and atlas grid dimensions. | CoreText, Metal |
 | `Shaders.metal` | `fullscreenVertex`, `rainFragment`, `downsampleFragment`, `compositeFragment`. | ShaderTypes.h |
 | `ShaderTypes.h` | C struct `RainUniforms`, shared by Swift (bridging header) and MSL. | — |
@@ -132,9 +132,9 @@ drawable (`bgra8Unorm_srgb`).
 - `init(frame:isPreview:)`: configure layer-backed view with a `CAMetalLayer`,
   load Settings, create Renderer. If Renderer creation fails, log via `os_log`
   and enter fallback mode (fill black in `draw(_:)`, no display link).
-- `startAnimation` / `viewDidMoveToWindow` (non-nil window): create
+- `startAnimation` (the host app calls it explicitly): create
   `NSView.displayLink(target:selector:)` and add to the main run loop. Each
-  tick: `renderer.draw(time:)` using time since start, wrapped modulo 10 000 s.
+  tick: `renderer.draw(time:)` using time since start, wrapped modulo 4096 s (keeps float32 fall position precise to well under one cell).
 - `stopAnimation`, `viewDidMoveToWindow` with nil window, and the distributed
   notification `com.apple.screensaver.willstop`: invalidate the display link.
   All paths idempotent.
