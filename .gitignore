@@ -1,0 +1,6 @@
+MatrixRain.xcodeproj/
+Support/
+build/
+DerivedData/
+.DS_Store
+xcuserdata/
