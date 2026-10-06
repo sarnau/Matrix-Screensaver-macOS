@@ -5,11 +5,11 @@ import XCTest
 final class ConfigureSheetTests: XCTestCase {
     func testControlsRoundTripSettings() {
         let controller = ConfigureSheetController { _ in }
-        let original = Settings(speed: 2.25, density: 0.75, color: .init(red: 0.1, green: 0.6, blue: 0.3), bloom: false)
+        let original = Settings(speed: 2.25, glyphSize: 30, color: .init(red: 0.1, green: 0.6, blue: 0.3), bloom: false)
         controller.load(original)
         let edited = controller.editedSettings
         XCTAssertEqual(edited.speed, 2.25, accuracy: 1e-9)
-        XCTAssertEqual(edited.density, 0.75, accuracy: 1e-9)
+        XCTAssertEqual(edited.glyphSize, 30, accuracy: 1e-9)
         XCTAssertEqual(edited.color.red, 0.1, accuracy: 1e-4)
         XCTAssertEqual(edited.color.green, 0.6, accuracy: 1e-4)
         XCTAssertEqual(edited.color.blue, 0.3, accuracy: 1e-4)
@@ -30,8 +30,8 @@ final class ConfigureSheetTests: XCTestCase {
         let controller = ConfigureSheetController { _ in }
         XCTAssertEqual(controller.speedSlider.minValue, Settings.speedRange.lowerBound)
         XCTAssertEqual(controller.speedSlider.maxValue, Settings.speedRange.upperBound)
-        XCTAssertEqual(controller.densitySlider.minValue, Settings.densityRange.lowerBound)
-        XCTAssertEqual(controller.densitySlider.maxValue, Settings.densityRange.upperBound)
+        XCTAssertEqual(controller.glyphSizeSlider.minValue, Settings.glyphSizeRange.lowerBound)
+        XCTAssertEqual(controller.glyphSizeSlider.maxValue, Settings.glyphSizeRange.upperBound)
     }
 
     func testOKSavesEditedValues() {
@@ -66,9 +66,9 @@ final class ConfigureSheetTests: XCTestCase {
                                                 isPreview: true, defaults: defaults))
         XCTAssertTrue(view.hasConfigureSheet)
         XCTAssertNotNil(view.configureSheet)
-        view.configureController.densitySlider.doubleValue = 1.75
+        view.configureController.glyphSizeSlider.doubleValue = 34
         view.configureController.ok(nil)
-        XCTAssertEqual(view.currentSettings.density, 1.75, accuracy: 1e-9)
-        XCTAssertEqual(Settings.load(from: defaults).density, 1.75, accuracy: 1e-9)
+        XCTAssertEqual(view.currentSettings.glyphSize, 34, accuracy: 1e-9)
+        XCTAssertEqual(Settings.load(from: defaults).glyphSize, 34, accuracy: 1e-9)
     }
 }

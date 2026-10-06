@@ -102,8 +102,8 @@ final class MatrixRainViewTests: XCTestCase {
 
     func testLoadsSavedSettings() throws {
         let defaults = makeDefaults()
-        Settings(density: 1.5).save(to: defaults)
+        Settings(glyphSize: 30).save(to: defaults)
         let view = try XCTUnwrap(MatrixRainView(frame: .zero, isPreview: false, defaults: defaults))
-        XCTAssertEqual(view.currentSettings.density, 1.5)
+        XCTAssertEqual(view.currentSettings.glyphSize, 30)
     }
 }

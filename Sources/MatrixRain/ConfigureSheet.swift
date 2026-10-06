@@ -5,7 +5,7 @@ import AppKit
 final class ConfigureSheetController: NSObject {
     let window: NSWindow
     let speedSlider: NSSlider
-    let densitySlider: NSSlider
+    let glyphSizeSlider: NSSlider
     let colorWell: NSColorWell
     let bloomCheckbox: NSButton
     private let onSave: (Settings) -> Void
@@ -18,9 +18,9 @@ final class ConfigureSheetController: NSObject {
                                minValue: Settings.speedRange.lowerBound,
                                maxValue: Settings.speedRange.upperBound,
                                target: nil, action: nil)
-        densitySlider = NSSlider(value: Settings.defaultDensity,
-                                 minValue: Settings.densityRange.lowerBound,
-                                 maxValue: Settings.densityRange.upperBound,
+        glyphSizeSlider = NSSlider(value: Settings.defaultGlyphSize,
+                                   minValue: Settings.glyphSizeRange.lowerBound,
+                                   maxValue: Settings.glyphSizeRange.upperBound,
                                  target: nil, action: nil)
         colorWell = NSColorWell()
         bloomCheckbox = NSButton(checkboxWithTitle: "Glow (bloom)", target: nil, action: nil)
@@ -35,7 +35,7 @@ final class ConfigureSheetController: NSObject {
 
     func load(_ settings: Settings) {
         speedSlider.doubleValue = settings.speed
-        densitySlider.doubleValue = settings.density
+        glyphSizeSlider.doubleValue = settings.glyphSize
         colorWell.color = NSColor(srgbRed: settings.color.red, green: settings.color.green,
                                   blue: settings.color.blue, alpha: 1)
         bloomCheckbox.state = settings.bloom ? .on : .off
@@ -46,7 +46,7 @@ final class ConfigureSheetController: NSObject {
         let color = colorWell.color.usingColorSpace(.sRGB)
         return Settings(
             speed: speedSlider.doubleValue,
-            density: densitySlider.doubleValue,
+            glyphSize: glyphSizeSlider.doubleValue,
             color: Settings.RGB(red: color.map { Double($0.redComponent) } ?? fallback.red,
                                 green: color.map { Double($0.greenComponent) } ?? fallback.green,
                                 blue: color.map { Double($0.blueComponent) } ?? fallback.blue),
@@ -83,7 +83,7 @@ final class ConfigureSheetController: NSObject {
 
         let grid = NSGridView(views: [
             [NSTextField(labelWithString: "Fall speed:"), speedSlider],
-            [NSTextField(labelWithString: "Density:"), densitySlider],
+            [NSTextField(labelWithString: "Glyph size:"), glyphSizeSlider],
             [NSTextField(labelWithString: "Color:"), colorWell],
             [NSGridCell.emptyContentView, bloomCheckbox],
         ])
@@ -92,7 +92,7 @@ final class ConfigureSheetController: NSObject {
         grid.column(at: 0).xPlacement = .trailing
         grid.yPlacement = .center
         speedSlider.widthAnchor.constraint(equalToConstant: 220).isActive = true
-        densitySlider.widthAnchor.constraint(equalToConstant: 220).isActive = true
+        glyphSizeSlider.widthAnchor.constraint(equalToConstant: 220).isActive = true
         colorWell.widthAnchor.constraint(equalToConstant: 44).isActive = true
 
         let buttons = NSStackView(views: [cancelButton, okButton])

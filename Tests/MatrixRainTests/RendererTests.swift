@@ -55,9 +55,9 @@ final class RendererTests: XCTestCase {
     func testUpdateSettingsChangesGrid() throws {
         let renderer = try makeRenderer()
         let before = renderer.metrics.columns
-        renderer.update(settings: Settings(density: 2))
+        renderer.update(settings: Settings(glyphSize: 12))
         XCTAssertGreaterThan(renderer.metrics.columns, before)
-        XCTAssertEqual(renderer.settings.density, 2)
+        XCTAssertEqual(renderer.settings.glyphSize, 12)
     }
 
     // MARK: Helpers

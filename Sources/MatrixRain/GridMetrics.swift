@@ -2,7 +2,7 @@ import CoreGraphics
 
 /// Pure grid maths: how large one rain cell is in pixels and how many cells cover the drawable.
 struct GridMetrics: Equatable {
-    static let baseCellHeightPoints = 22.0
+    static let defaultGlyphSizePoints = 22.0
     static let previewScale = 0.35
     static let cellAspect = 0.6
     static let minimumCellHeightPixels = 4.0
@@ -12,10 +12,11 @@ struct GridMetrics: Equatable {
     let columns: Int
     let rows: Int
 
-    init(pixelSize: CGSize, backingScale: CGFloat, density: Double, isPreview: Bool) {
+    /// `glyphSize` is the cell height in points; the preview thumbnail scales it down.
+    init(pixelSize: CGSize, backingScale: CGFloat, glyphSize: Double, isPreview: Bool) {
         let scale = backingScale.isFinite && backingScale > 0 ? Double(backingScale) : 1
-        let density = density.isFinite && density > 0 ? density : 1
-        let points = Self.baseCellHeightPoints * (isPreview ? Self.previewScale : 1) / density
+        let glyphSize = glyphSize.isFinite && glyphSize > 0 ? glyphSize : Self.defaultGlyphSizePoints
+        let points = glyphSize * (isPreview ? Self.previewScale : 1)
         cellHeight = max(points * scale, Self.minimumCellHeightPixels)
         cellWidth = cellHeight * Self.cellAspect
         columns = Self.count(Double(pixelSize.width), cellWidth)

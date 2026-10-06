@@ -61,7 +61,7 @@ final class Renderer {
         self.blur = blur
         self.settings = settings
         self.isPreview = isPreview
-        self.metrics = GridMetrics(pixelSize: .zero, backingScale: 1, density: settings.density, isPreview: isPreview)
+        self.metrics = GridMetrics(pixelSize: .zero, backingScale: 1, glyphSize: settings.glyphSize, isPreview: isPreview)
     }
 
     func resize(pixelSize requested: CGSize, backingScale: CGFloat) {
@@ -140,7 +140,7 @@ final class Renderer {
 
     private func updateMetrics() {
         metrics = GridMetrics(pixelSize: pixelSize, backingScale: backingScale,
-                              density: settings.density, isPreview: isPreview)
+                              glyphSize: settings.glyphSize, isPreview: isPreview)
     }
 
     private func makeUniforms(time: Float) -> RainUniforms {

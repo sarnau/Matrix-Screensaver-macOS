@@ -12,7 +12,9 @@ struct Settings: Equatable {
 
     enum Keys {
         static let speed = "speed"
-        static let density = "density"
+        static let glyphSize = "glyphSize"
+        /// Pre-1.1 option: cell height was 22 pt divided by this.
+        static let legacyDensity = "density"
         static let colorRed = "colorRed"
         static let colorGreen = "colorGreen"
         static let colorBlue = "colorBlue"
@@ -20,23 +22,23 @@ struct Settings: Equatable {
     }
 
     static let speedRange: ClosedRange<Double> = 0.25...3.0
-    static let densityRange: ClosedRange<Double> = 0.5...2.0
+    static let glyphSizeRange: ClosedRange<Double> = 12...44   // points
     static let defaultSpeed = 1.0
-    static let defaultDensity = 1.0
+    static let defaultGlyphSize = 22.0
     static let defaultColor = RGB(red: 0, green: 1, blue: 0x41 / 255)   // #00FF41
     static let defaultBloom = true
 
     var speed: Double
-    var density: Double
+    var glyphSize: Double
     var color: RGB
     var bloom: Bool
 
     init(speed: Double = Settings.defaultSpeed,
-         density: Double = Settings.defaultDensity,
+         glyphSize: Double = Settings.defaultGlyphSize,
          color: RGB = Settings.defaultColor,
          bloom: Bool = Settings.defaultBloom) {
         self.speed = Self.sanitize(speed, in: Self.speedRange, fallback: Self.defaultSpeed)
-        self.density = Self.sanitize(density, in: Self.densityRange, fallback: Self.defaultDensity)
+        self.glyphSize = Self.sanitize(glyphSize, in: Self.glyphSizeRange, fallback: Self.defaultGlyphSize)
         self.color = RGB(
             red: Self.sanitize(color.red, in: 0...1, fallback: Self.defaultColor.red),
             green: Self.sanitize(color.green, in: 0...1, fallback: Self.defaultColor.green),
@@ -50,7 +52,7 @@ struct Settings: Equatable {
         func double(_ key: String, _ fallback: Double) -> Double { number(key)?.doubleValue ?? fallback }
         return Settings(
             speed: double(Keys.speed, defaultSpeed),
-            density: double(Keys.density, defaultDensity),
+            glyphSize: number(Keys.glyphSize)?.doubleValue ?? legacyGlyphSize(defaults) ?? defaultGlyphSize,
             color: RGB(red: double(Keys.colorRed, defaultColor.red),
                        green: double(Keys.colorGreen, defaultColor.green),
                        blue: double(Keys.colorBlue, defaultColor.blue)),
@@ -60,7 +62,7 @@ struct Settings: Equatable {
 
     func save(to defaults: UserDefaults) {
         defaults.set(speed, forKey: Keys.speed)
-        defaults.set(density, forKey: Keys.density)
+        defaults.set(glyphSize, forKey: Keys.glyphSize)
         defaults.set(color.red, forKey: Keys.colorRed)
         defaults.set(color.green, forKey: Keys.colorGreen)
         defaults.set(color.blue, forKey: Keys.colorBlue)
@@ -74,6 +76,12 @@ struct Settings: Equatable {
             Float(c <= 0.04045 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4))
         }
         return SIMD3(linear(color.red), linear(color.green), linear(color.blue))
+    }
+
+    private static func legacyGlyphSize(_ defaults: UserDefaults) -> Double? {
+        guard let density = (defaults.object(forKey: Keys.legacyDensity) as? NSNumber)?.doubleValue,
+              density.isFinite, density > 0 else { return nil }
+        return defaultGlyphSize / density
     }
 
     private static func sanitize(_ value: Double, in range: ClosedRange<Double>, fallback: Double) -> Double {
