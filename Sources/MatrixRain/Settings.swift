@@ -22,7 +22,7 @@ struct Settings: Equatable {
     }
 
     static let speedRange: ClosedRange<Double> = 0.25...3.0
-    static let glyphSizeRange: ClosedRange<Double> = 12...44   // points
+    static let glyphSizeRange: ClosedRange<Double> = 12...88   // points
     static let defaultSpeed = 1.0
     static let defaultGlyphSize = 22.0
     static let defaultColor = RGB(red: 0, green: 1, blue: 0x41 / 255)   // #00FF41

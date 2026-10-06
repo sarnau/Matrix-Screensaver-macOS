@@ -41,7 +41,8 @@ final class SettingsTests: XCTestCase {
         defaults.set(99.0, forKey: Settings.Keys.glyphSize)
         let loaded = Settings.load(from: defaults)
         XCTAssertEqual(loaded.speed, 0.25)
-        XCTAssertEqual(loaded.glyphSize, 44)
+        XCTAssertEqual(loaded.glyphSize, 88)
+        XCTAssertEqual(Settings(glyphSize: 88).glyphSize, 88, "88 pt is the largest allowed size")
     }
 
     func testNonFiniteValuesFallBackToDefaults() {
