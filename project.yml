@@ -33,7 +33,18 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.sarnau.MatrixRain
         WRAPPER_EXTENSION: saver
         SKIP_INSTALL: YES
-    scheme: {}
+  InstallSaver:
+    type: tool
+    platform: macOS
+    sources:
+      - path: Sources/InstallSaver
+    dependencies:
+      - target: MatrixRain
+        embed: false
+        link: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.sarnau.MatrixRain.InstallSaver
   MatrixRainHost:
     type: application
     platform: macOS
@@ -58,9 +69,21 @@ targets:
     platform: macOS
     sources:
       - path: Tests/MatrixRainTests
+      - path: Sources/InstallSaver/SaverInstaller.swift
     dependencies:
       - target: MatrixRainHost
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sarnau.MatrixRainTests
         GENERATE_INFOPLIST_FILE: YES
+schemes:
+  MatrixRain:
+    build:
+      targets:
+        MatrixRain: all
+        InstallSaver: all
+    run:
+      config: Debug
+      executable: InstallSaver
+    archive:
+      config: Release
