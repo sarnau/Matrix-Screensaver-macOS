@@ -8,20 +8,20 @@ private let logger = Logger(subsystem: "com.sarnau.MatrixRain", category: "View"
 /// The screensaver's principal class. Frames are driven by the view's display link rather than
 /// `animateOneFrame`, so every display renders at its own refresh rate.
 ///
-/// Since Sonoma, legacyScreenSaver often never calls `stopAnimation` and keeps old instances alive,
-/// so rendering also stops on the `com.apple.screensaver.willstop` notification and when the view
-/// leaves its window. All stop paths are idempotent.
+/// Rendering stops on `stopAnimation` and when the host removes the view from its window; both paths
+/// are idempotent and free the size-dependent GPU textures, because legacyScreenSaver keeps stopped
+/// instances alive. The global `com.apple.screensaver.willstop` notification is deliberately ignored:
+/// it reaches every instance in the process, including the System Settings preview, which the host
+/// never restarts.
 @objc(MatrixRainView)
 final class MatrixRainView: ScreenSaverView {
     static let timeWrap: CFTimeInterval = 4096
-    private static let willStopNotification = Notification.Name("com.apple.screensaver.willstop")
 
     private let metalLayer = CAMetalLayer()
     private let defaults: UserDefaults
     private var settings: Settings
     private var renderer: Renderer?
     private var displayLink: CADisplayLink?
-    private var stopObserver: (any NSObjectProtocol)?
     private var startTime: CFTimeInterval = 0
 
     var isRendering: Bool { displayLink != nil }
@@ -124,15 +124,6 @@ final class MatrixRainView: ScreenSaverView {
         stopRendering()
     }
 
-    /// Called for `com.apple.screensaver.willstop`; internal so tests can drive it directly.
-    /// The notification reaches every instance, including the System Settings thumbnail,
-    /// which nothing would restart, so previews ignore it and stop only via `stopAnimation`
-    /// or leaving their window.
-    func handleWillStop() {
-        guard !isPreview else { return }
-        stopRendering()
-    }
-
     private func startRendering() {
         guard renderer != nil, displayLink == nil else { return }
         updateDrawableSize()
@@ -142,21 +133,12 @@ final class MatrixRainView: ScreenSaverView {
         let link = displayLink(target: self, selector: #selector(step(_:)))
         link.add(to: .main, forMode: .common)
         displayLink = link
-        stopObserver = DistributedNotificationCenter.default().addObserver(
-            forName: Self.willStopNotification, object: nil, queue: .main
-        ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.handleWillStop() }
-        }
     }
 
     private func stopRendering() {
         displayLink?.invalidate()
         displayLink = nil
         renderer?.releaseSurfaces()
-        if let observer = stopObserver {
-            DistributedNotificationCenter.default().removeObserver(observer)
-            stopObserver = nil
-        }
     }
 
     @objc private func step(_ link: CADisplayLink) {

@@ -31,22 +31,13 @@ final class MatrixRainViewTests: XCTestCase {
         XCTAssertFalse(view.isRendering)
     }
 
-    func testWillStopHandlerStopsRendering() throws {
-        let view = try makeView()
-        view.startAnimation()
-        view.handleWillStop()
-        XCTAssertFalse(view.isRendering)
-        view.handleWillStop()   // second notification is harmless
-        XCTAssertFalse(view.isRendering)
-    }
-
     func testStopReleasesSurfacesAndRestartRendersAgain() throws {
         let view = try makeView()
         let window = NSWindow(contentRect: view.frame, styleMask: [.titled], backing: .buffered, defer: false)
         window.contentView = view
         view.startAnimation()
         XCTAssertTrue(view.rendererHasSurfaces)
-        view.handleWillStop()
+        view.stopAnimation()
         XCTAssertFalse(view.rendererHasSurfaces, "stopped instances must not keep full-size GPU textures")
         view.startAnimation()
         XCTAssertTrue(view.isRendering)
@@ -60,15 +51,6 @@ final class MatrixRainViewTests: XCTestCase {
         b.startAnimation()
         XCTAssertNotEqual(a.timeOffset, b.timeOffset, "displays would show identical rain")
         XCTAssertTrue((0..<MatrixRainView.timeWrap).contains(a.timeOffset))
-    }
-
-    func testWillStopDoesNotFreezePreviewThumbnail() throws {
-        let view = try makeView(isPreview: true)
-        view.startAnimation()
-        view.handleWillStop()
-        XCTAssertTrue(view.isRendering)
-        view.stopAnimation()
-        XCTAssertFalse(view.isRendering)
     }
 
     func testRemovingFromWindowStopsRendering() throws {
