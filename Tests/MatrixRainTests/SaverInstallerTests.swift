@@ -45,4 +45,15 @@ final class SaverInstallerTests: XCTestCase {
         XCTAssertThrowsError(try SaverInstaller(source: missing, destinationDirectory: savers).install())
         XCTAssertTrue(FileManager.default.fileExists(atPath: existing.appendingPathComponent("Contents/old").path))
     }
+
+    func testOpensScreenSaverPaneWhereItExists() {
+        let url = SaverInstaller.settingsURL(installedSettingsExtensions: ["com.apple.ScreenSaver-Settings.extension", "com.apple.Wallpaper-Settings.extension"])
+        XCTAssertEqual(url.absoluteString, "x-apple.systempreferences:com.apple.ScreenSaver-Settings.extension")
+    }
+
+    func testOpensWallpaperPaneWhenScreenSaverPaneWasMergedIntoIt() {
+        // macOS 27 has no separate Screen Saver pane; screensavers live behind Wallpaper › Screen Saver…
+        let url = SaverInstaller.settingsURL(installedSettingsExtensions: ["com.apple.Wallpaper-Settings.extension"])
+        XCTAssertEqual(url.absoluteString, "x-apple.systempreferences:com.apple.Wallpaper-Settings.extension")
+    }
 }
