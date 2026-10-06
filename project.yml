@@ -32,6 +32,7 @@ targets:
         PRODUCT_NAME: MatrixRain
         PRODUCT_BUNDLE_IDENTIFIER: com.sarnau.MatrixRain
         WRAPPER_EXTENSION: saver
+        COMBINE_HIDPI_IMAGES: NO   # ship thumbnail.png + thumbnail@2x.png like Apple's own savers
         SKIP_INSTALL: YES
   InstallSaver:
     type: tool
@@ -61,6 +62,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sarnau.MatrixRainHost
+        COMBINE_HIDPI_IMAGES: NO
     scheme:
       testTargets:
         - MatrixRainTests
