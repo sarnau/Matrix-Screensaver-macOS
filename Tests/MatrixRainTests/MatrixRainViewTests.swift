@@ -17,7 +17,8 @@ final class MatrixRainViewTests: XCTestCase {
     func testCreatesRendererAndMetalLayer() throws {
         let view = try makeView()
         XCTAssertTrue(view.hasRenderer)
-        XCTAssertTrue(view.layer is CAMetalLayer)
+        XCTAssertFalse(view.layer is CAMetalLayer, "the host owns the ScreenSaverView's own layer")
+        XCTAssertTrue(view.subviews.contains { $0.layer is CAMetalLayer }, "Metal draws into a child view")
         XCTAssertFalse(view.isRendering)
     }
 
@@ -51,6 +52,33 @@ final class MatrixRainViewTests: XCTestCase {
         b.startAnimation()
         XCTAssertNotEqual(a.timeOffset, b.timeOffset, "displays would show identical rain")
         XCTAssertTrue((0..<MatrixRainView.timeWrap).contains(a.timeOffset))
+    }
+
+    func testStartsRenderingWhenShownWithoutStartAnimation() throws {
+        // legacyScreenSaver loads fresh instances into System Settings and never starts them.
+        let view = try makeView()
+        let window = NSWindow(contentRect: view.frame, styleMask: [.titled], backing: .buffered, defer: false)
+        window.contentView = view
+        XCTAssertTrue(view.isRendering)
+    }
+
+    func testZeroSizedHelperViewNeverRenders() throws {
+        // The Options… helper the host creates has no size; it must not burn GPU time.
+        let view = try XCTUnwrap(MatrixRainView(frame: .zero, isPreview: true, defaults: makeDefaults()))
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 68, height: 16), styleMask: [.titled], backing: .buffered, defer: false)
+        window.contentView?.addSubview(view)
+        XCTAssertFalse(view.isRendering)
+    }
+
+    func testStaysStoppedAfterHostStopsIt() throws {
+        let view = try makeView()
+        let window = NSWindow(contentRect: view.frame, styleMask: [.titled], backing: .buffered, defer: false)
+        window.contentView = view
+        view.stopAnimation()
+        view.setFrameSize(NSSize(width: 500, height: 300))
+        XCTAssertFalse(view.isRendering, "a resize must not undo the host's stopAnimation")
+        view.startAnimation()
+        XCTAssertTrue(view.isRendering)
     }
 
     func testRemovingFromWindowStopsRendering() throws {

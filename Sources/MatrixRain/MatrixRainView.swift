@@ -23,6 +23,8 @@ final class MatrixRainView: ScreenSaverView {
     private var renderer: Renderer?
     private var displayLink: CADisplayLink?
     private var startTime: CFTimeInterval = 0
+    /// Set by `stopAnimation`, cleared by `startAnimation`: the host asked this view to stay still.
+    private var stoppedByHost = false
 
     var isRendering: Bool { displayLink != nil }
     var hasRenderer: Bool { renderer != nil }
@@ -61,7 +63,10 @@ final class MatrixRainView: ScreenSaverView {
         metalLayer.framebufferOnly = true
         metalLayer.isOpaque = true
         metalLayer.backgroundColor = CGColor(gray: 0, alpha: 1)
-        wantsLayer = true
+        let metalView = MetalLayerView(metalLayer: metalLayer)
+        metalView.frame = bounds
+        metalView.autoresizingMask = [.width, .height]
+        addSubview(metalView)
 
         guard let device = MTLCreateSystemDefaultDevice() else {
             logger.error("No Metal device; showing black screen")
@@ -78,14 +83,12 @@ final class MatrixRainView: ScreenSaverView {
 
     // MARK: Layer
 
-    override func makeBackingLayer() -> CALayer { metalLayer }
-    override var wantsUpdateLayer: Bool { true }
-    override func updateLayer() {}          // content comes from the display link
     override func animateOneFrame() {}
 
     override func setFrameSize(_ newSize: NSSize) {
         super.setFrameSize(newSize)
         updateDrawableSize()
+        startIfShown()
     }
 
     override func viewDidChangeBackingProperties() {
@@ -99,7 +102,15 @@ final class MatrixRainView: ScreenSaverView {
             stopRendering()
         } else {
             updateDrawableSize()
+            startIfShown()
         }
+    }
+
+    /// legacyScreenSaver often loads a fresh instance into System Settings without ever calling
+    /// `startAnimation`, which left the preview black; render whenever the view is actually shown.
+    private func startIfShown() {
+        guard window != nil, !stoppedByHost, bounds.width >= 1, bounds.height >= 1 else { return }
+        startRendering()
     }
 
     private func updateDrawableSize() {
@@ -116,11 +127,13 @@ final class MatrixRainView: ScreenSaverView {
 
     override func startAnimation() {
         super.startAnimation()
+        stoppedByHost = false
         startRendering()
     }
 
     override func stopAnimation() {
         super.stopAnimation()
+        stoppedByHost = true
         stopRendering()
     }
 
@@ -161,4 +174,22 @@ final class MatrixRainView: ScreenSaverView {
         newSettings.save(to: defaults)
         renderer?.update(settings: newSettings)
     }
+}
+
+/// Hosts the CAMetalLayer in a child view. legacyScreenSaver hosts the ScreenSaverView's own layer in
+/// System Settings and the screensaver window, so that layer must stay the one AppKit created.
+private final class MetalLayerView: NSView {
+    private let metalLayer: CAMetalLayer
+
+    init(metalLayer: CAMetalLayer) {
+        self.metalLayer = metalLayer
+        super.init(frame: .zero)
+        wantsLayer = true
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    override func makeBackingLayer() -> CALayer { metalLayer }
+    override var wantsUpdateLayer: Bool { true }
+    override func updateLayer() {}          // content comes from the display link
 }

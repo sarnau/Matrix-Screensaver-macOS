@@ -25,14 +25,13 @@ targets:
         NSPrincipalClass: MatrixRainView
         CFBundleDisplayName: Matrix Rain
         CFBundleName: Matrix Rain
-        CFBundleShortVersionString: "1.0"
-        CFBundleVersion: "1"
+        CFBundleShortVersionString: "1.1"
+        CFBundleVersion: "2"
     settings:
       base:
         PRODUCT_NAME: MatrixRain
         PRODUCT_BUNDLE_IDENTIFIER: com.sarnau.MatrixRain
         WRAPPER_EXTENSION: saver
-        COMBINE_HIDPI_IMAGES: NO   # ship thumbnail.png + thumbnail@2x.png like Apple's own savers
         SKIP_INSTALL: YES
   InstallSaver:
     type: tool
@@ -62,7 +61,6 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sarnau.MatrixRainHost
-        COMBINE_HIDPI_IMAGES: NO
     scheme:
       testTargets:
         - MatrixRainTests
