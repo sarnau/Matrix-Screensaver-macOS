@@ -1,0 +1,89 @@
+name: MatrixRain
+options:
+  bundleIdPrefix: com.sarnau
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "-"
+    DEVELOPMENT_TEAM: ""
+    SWIFT_OBJC_BRIDGING_HEADER: Sources/MatrixRain/MatrixRain-Bridging-Header.h
+    CLANG_ENABLE_MODULES: YES
+targets:
+  MatrixRain:
+    type: bundle
+    platform: macOS
+    sources:
+      - path: Sources/MatrixRain
+    info:
+      path: Support/MatrixRain-Info.plist
+      properties:
+        NSPrincipalClass: MatrixRainView
+        CFBundleDisplayName: Matrix Rain
+        CFBundleName: Matrix Rain
+        CFBundleShortVersionString: "1.1"
+        CFBundleVersion: "2"
+    settings:
+      base:
+        PRODUCT_NAME: MatrixRain
+        PRODUCT_BUNDLE_IDENTIFIER: com.sarnau.MatrixRain
+        WRAPPER_EXTENSION: saver
+        SKIP_INSTALL: YES
+  InstallSaver:
+    type: tool
+    platform: macOS
+    sources:
+      - path: Sources/InstallSaver
+    dependencies:
+      - target: MatrixRain
+        embed: false
+        link: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.sarnau.MatrixRain.InstallSaver
+  MatrixRainHost:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/MatrixRain
+      - path: Sources/Host
+    info:
+      path: Support/Host-Info.plist
+      properties:
+        CFBundleDisplayName: Matrix Rain Host
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        NSPrincipalClass: NSApplication
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.sarnau.MatrixRainHost
+    scheme:
+      testTargets:
+        - MatrixRainTests
+  MatrixRainTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/MatrixRainTests
+      - path: Sources/InstallSaver/SaverInstaller.swift
+    dependencies:
+      - target: MatrixRainHost
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.sarnau.MatrixRainTests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  MatrixRain:
+    build:
+      targets:
+        MatrixRain: all
+        InstallSaver: all
+    run:
+      config: Debug
+      executable: InstallSaver
+    archive:
+      config: Release
